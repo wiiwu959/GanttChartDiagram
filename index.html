@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="zn-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Gantt Chart Diagram</title>
+    <!-- font -->
+    <link href="https://fonts.googleapis.com/css?family=Noto+Sans+TC&display=swap" rel="stylesheet">
+    <!-- css -->
+    <link rel="stylesheet" href="css/all.css">
+</head>
+
+<body>
+    <!-- logo 和搜尋的區塊 -->
+    <header class="header"></header>
+    <!-- 主畫面（包含有左上角按鈕的藍色 bar 、左邊選單和登入畫面） -->
+    <div class="folder-view" v-if="page == 'folder'"></div>
+    <!-- 專案畫面（包含有一排操作按鈕的藍色 bar） -->
+    <div class="project-view" v-if="page == 'project'"></div>
+    <!-- 編輯畫面 -->
+    <div class="edit-view" v-if="page == 'edit'"></div>
+    
+    <!-- js -->
+        <!-- Vue 先使用開發版本 -->
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="js/all.js"></script>
+</body>
+
+</html>
