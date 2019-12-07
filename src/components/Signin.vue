@@ -1,12 +1,12 @@
 <template>
   <div>
-    <img src="../assets/img/signin.png" alt="">
+    <img src="../assets/illustration/signin.png" alt="">
   </div>
 </template>
 
 <script>
 export default {
-  name: 'Signin',
+  name: 'signin',
 };
 </script>
 

@@ -9,30 +9,32 @@ import Signup from '../components/Signup.vue'
 Vue.use(Router)
 
 export default new Router({
+    mode: 'history',
+    linkExactActiveClass: 'active',
     routes: [
         {
             path: '/',
-            name: '首頁',
+            name: 'index',
             component: Index,
             children:[
                 {
                     path: '/signin',
-                    name: '登入頁面',
+                    name: 'signin',
                     component: Signin
                 },
                 {
                     path: '/signup',
-                    name: '註冊頁面',
+                    name: 'signup',
                     component: Signup
                 },
                 {
                     path: '/gantt',
-                    name: '甘特頁面',
+                    name: 'gantt',
                     component: Gantt
                 },
                 {
                     path: '/file',
-                    name: '檔案頁面',
+                    name: 'file',
                     component: File
                 },
             ],
