@@ -72,7 +72,7 @@ export default {
 
 .menu{
   position: relative;
-  top: 18px;
+  /* top: 18px; */
   left: -396px;
   display: flex;
   justify-content: flex-start;
