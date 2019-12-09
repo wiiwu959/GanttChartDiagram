@@ -48,7 +48,7 @@ export default {
 
 
 .top-bar{
-  top: 80px;
+  /* top: 80px; */
   left: 0px;
   width: 1280px;
   height: 80px;
@@ -63,7 +63,7 @@ export default {
   justify-content: center;
   align-items: center;
   position: relative;
-  top: 80px;
+  /* top: 80px; */
   left: 0px;
   width: 1280px;
   height: 640px;
