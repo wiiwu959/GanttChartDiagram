@@ -43,7 +43,7 @@
                 <span class="last-time">{{item.updateTime | dateFormat}}</span>
                 <span class="created-time">{{item.createTime| dateFormat}}</span>
               </div>
-              <button class="option-button" @click="optionOn = 0">
+              <button class="option-button" @click.stop="optionOn = 0">
                 <img src="../assets/img/option-button.png" alt="選項按鈕" />
               </button>
               <ul class="option-list" v-if="optionOn === 0">
@@ -146,21 +146,32 @@ export default {
       }
     },
     openFolder: function(item) {
-      this.path = item.path + item.name + "/";
-      this.pathList = item.pathList || [];
-      this.pathList.push(item.name + "/");
-      this.updateList();
+      console.log(item);
+      console.log(this.path);
+      if (this.path != item.path + item.name + "/") {
+        this.path = item.path + item.name + "/";
+        if(item.pathList != undefined)
+        {
+          this.pathList = item.pathList.slice();
+        }
+        else
+        {
+          this.pathList = [];
+        }
+        this.pathList.push(item.name + "/");
+        this.updateList();
+      }
     },
     changePath: function(index) {
-      this.path = "";
+      let newPath = "";
       for (let i = 0; i <= index; i++) {
-        this.path += this.pathList[i];
+        newPath += this.pathList[i];
       }
       for (let i = 0; i < this.data.files.length; i++) {
         if (this.data.files[i].type === "folder") {
           let folderPath =
             this.data.files[i].path + this.data.files[i].name + "/";
-          if (folderPath === this.path) {
+          if (folderPath === newPath) {
             this.openFolder(this.data.files[i]);
             break;
           }
