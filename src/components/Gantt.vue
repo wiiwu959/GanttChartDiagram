@@ -118,7 +118,7 @@ export default {
           name: "day",
           scale_height: 27,
           min_column_width: 80,
-          scales: [{ unit: "day", step: 1, format: "%d %M" }]
+          scales: [{ unit: "day", step: 1, format: "%M %d日" }]
         },
         {
           name: "week",
@@ -129,13 +129,10 @@ export default {
               unit: "week",
               step: 1,
               format: function(date) {
-                var dateToStr = gantt.date.date_to_str("%d %M");
+                var dateToStr = gantt.date.date_to_str("%M %d日");
                 var endDate = gantt.date.add(date, -6, "day");
                 var weekNum = gantt.date.date_to_str("%W")(date);
                 return (
-                  "#" +
-                  weekNum +
-                  ", " +
                   dateToStr(date) +
                   " - " +
                   dateToStr(endDate)
@@ -194,7 +191,7 @@ export default {
     recaptchaScript.setAttribute('src', 'http://export.dhtmlx.com/gantt/api.js')
     document.head.appendChild(recaptchaScript)
     // 初始化
-    gantt.init(this.$refs.gantt, new Date(2019, 7, 1), new Date(2020, 8, 1));
+    gantt.init(this.$refs.gantt, new Date(2019, 9, 1), new Date(2020, 2, 1));
     // 讀取資料
     gantt.parse(this.file.tasks);
   },
