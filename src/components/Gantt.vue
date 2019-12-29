@@ -187,13 +187,13 @@ export default {
     this.file = this.$route.params.file;
     this.data = this.$route.params.data;
 
-    let recaptchaScript = document.createElement('script')
-    recaptchaScript.setAttribute('src', 'http://export.dhtmlx.com/gantt/api.js')
-    document.head.appendChild(recaptchaScript)
     // 初始化
     gantt.init(this.$refs.gantt, new Date(2019, 9, 1), new Date(2020, 2, 1));
     // 讀取資料
     gantt.parse(this.file.tasks);
+    let recaptchaScript = document.createElement('script')
+    recaptchaScript.setAttribute('src', 'http://export.dhtmlx.com/gantt/api.js')
+    document.head.appendChild(recaptchaScript)
   },
   methods: {
     saveFile: function() {
