@@ -178,7 +178,8 @@ export default {
       this.$router.push({
         name: `gantt`,
         params: {
-          file: item
+          file: item,
+          data: this.data,
         }
       });
     }

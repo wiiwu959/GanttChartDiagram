@@ -2,9 +2,7 @@
   <div id="index">
     <!-- 這裡是首頁 -->
     <header class="header">
-      <router-link to="/redirect">
-        <img class="gantt-logo" src="../assets/img/logo.png" />
-      </router-link>
+      <img class="gantt-logo" src="../assets/img/logo.png" />
       <button class="signout-button" @click="signOut()" v-if="signinToken!==''">登出</button>
     </header>
     <!-- router-view 會依據網址改變內容 -->
@@ -19,7 +17,7 @@ export default {
   name: "index",
   data() {
     return {
-      signinToken: '',
+      signinToken: "",
       files: []
     };
   },

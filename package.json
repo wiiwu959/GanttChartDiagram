@@ -8,10 +8,12 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "@babel/polyfill": "^7.7.0",
     "@syncfusion/ej2-vue-buttons": "^17.3.27",
     "@syncfusion/ej2-vue-gantt": "^17.3.30",
     "core-js": "^3.4.3",
     "dhtmlx-gantt": "^6.3.4",
+    "es6-promise": "^4.2.8",
     "firebase": "^7.6.1",
     "node": "^13.3.0",
     "save": "^2.4.0",

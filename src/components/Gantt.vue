@@ -1,24 +1,33 @@
 <template>
   <div class="gantt-app">
     <div class="bar">
-      <button class="button" @click="exportListOn = !exportListOn">
-        輸出
-        <ul class="export-list" v-if="exportListOn === true" @click="exportListOn = false">
-          <li class="export-item" @click="exportFile('pdf')">Export to PDF</li>
-          <li class="export-item" @click="exportFile('png')">Export to PNG</li>
-          <li class="export-item" @click="exportFile('meadow')">Export :: Meadow</li>
-          <li class="export-item" @click="exportFile('broadway')">Export :: Broadway</li>
-          <li class="export-item" @click="exportFile('skyblue')">Export :: Skyblue</li>
-          <li class="export-item" @click="exportFile('material')">Export :: Material</li>
-        </ul>
-      </button>
-
-      <button class="export-item" @click="zoom('in')">
-        <img src="..\assets\img\ic_zoom_in_24px.png" alt />
-      </button>
-      <button class="export-item" @click="zoom('out')">
-        <img src="..\assets\img\ic_zoom_out_24px.png" alt />
-      </button>
+      <div class="left">
+        <button class="export-item button" @click="zoom('in')">
+          <img src="..\assets\img\ic_zoom_in_24px.png" alt />
+        </button>
+        <button class="export-item button" @click="zoom('out')">
+          <img src="..\assets\img\ic_zoom_out_24px.png" alt />
+        </button>
+      </div>
+      <div class="right">
+        <button class="button" @click="exportListOn = !exportListOn">
+          輸出
+          <ul class="export-list" v-if="exportListOn === true" @click="exportListOn = false">
+            <li class="export-item" @click="exportFile('pdf')">Export to PDF</li>
+            <li class="export-item" @click="exportFile('png')">Export to PNG</li>
+            <li class="export-item" @click="exportFile('meadow')">Export :: Meadow</li>
+            <li class="export-item" @click="exportFile('broadway')">Export :: Broadway</li>
+            <li class="export-item" @click="exportFile('skyblue')">Export :: Skyblue</li>
+            <li class="export-item" @click="exportFile('material')">Export :: Material</li>
+          </ul>
+        </button>
+        <button class="button" @click="saveFile()">
+          <img src="..\assets\img\ic_save_24px.png" alt />
+        </button>
+        <button class="button" @click="exit()">
+          <img src="..\assets\img\ic_home_24px.png" alt />
+        </button>
+      </div>
     </div>
     <div ref="gantt" class="left-container"></div>
   </div>
@@ -27,11 +36,14 @@
 import gantt from "dhtmlx-gantt";
 import "dhtmlx-gantt/codebase/dhtmlxgantt.css";
 import "dhtmlx-gantt/codebase/locale/locale_cn"; // 本地化
+import { db } from "../db.js";
+
 export default {
   name: "Gantt",
   data() {
     return {
-      file:{},
+      file: {},
+      data: {},
       exportListOn: false
     };
   },
@@ -176,12 +188,51 @@ export default {
   },
   mounted() {
     this.file = this.$route.params.file;
+    this.data = this.$route.params.data;
     // 初始化
     gantt.init(this.$refs.gantt, new Date(2019, 7, 1), new Date(2020, 8, 1));
     // 讀取資料
     gantt.parse(this.file.tasks);
   },
   methods: {
+    saveFile: function() {
+      let that = this;
+      this.file.tasks = gantt.serialize();
+      db.auth().onAuthStateChanged(function(user) {
+        if (user) {
+          // 找出createTime一樣的檔案 蓋掉 然後整筆丟回去
+          for (let i = 0; i < that.data.files.length; i++) {
+            if (that.data.files[i].createTime === that.file.createTime) {
+              that.data.files[i] = JSON.parse(JSON.stringify(that.file));
+              break;
+            }
+          }
+          db.database()
+            .ref(user.uid)
+            .set(that.data)
+            .then(function() {
+              alert("資料已儲存。");
+            })
+            .catch(error => {
+              alert(error);
+            });
+        }
+      });
+    },
+    exit: function() {
+      const that = this;
+      if (
+        JSON.stringify(this.file.tasks) !== JSON.stringify(gantt.serialize())
+      ) {
+        let toSave = confirm("您有未儲存的內容，是否要儲存？");
+        if (toSave) {
+          this.saveFile();
+          that.$router.push({ path: "/" });
+        }
+      } else {
+        this.$router.push({ path: "/" });
+      }
+    },
     exportFile: function(format) {
       switch (format) {
         case "pdf":
@@ -222,15 +273,22 @@ export default {
 .gantt-app .bar {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   height: 80px;
   background-color: #00bbff;
+  padding: 0 40px;
 }
-
+.gantt-app .bar .left,
+.gantt-app .bar .right {
+  display: flex;
+  align-items: center;
+  height: 80px;
+}
 .gantt-app .bar button {
   color: #fff;
   padding: 0 5px;
   font-size: 16px;
-  margin-left: 40px;
+  margin: 0 10px;
   position: relative;
   height: 100%;
 }
@@ -240,9 +298,10 @@ export default {
   z-index: 1;
   background-color: #fff;
   color: #000;
-  top: 80px;
-  border: #00bbff solid 2px;
-  border-top: 0;
+  right: 0;
+  top: 60px;
+  border: #0099dd solid 2px;
+  border-radius: 5px;
 }
 .gantt-app .bar .export-list .export-item {
   display: flex;
