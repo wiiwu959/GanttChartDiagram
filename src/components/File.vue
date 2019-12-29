@@ -6,6 +6,15 @@
       <button class="menu-button" @click="toggleMenu()">
         <img src="../assets/img/menu-button.png" />
       </button>
+      <ul class="path">
+        <span>當前資料夾：</span>
+        <li
+          v-for="(item, index) in pathList"
+          :key="index"
+          class="path-link"
+          @click="changePath(index)"
+        >{{item}}</li>
+      </ul>
     </div>
     <div class="wrap">
       <aside class="menu" v-if="menuOn">
@@ -22,11 +31,17 @@
             <span class="created-time">建立時間</span>
           </div>
           <ul class="list">
-            <li class="list-item" :class="{'active':optionOn === 0}">
+            <li
+              v-for="(item, index) in folderList"
+              :key="index"
+              class="list-item"
+              :class="{'active':optionOn === 0}"
+              @click="openFolder(item)"
+            >
               <div class="left">
-                <span class="name">我的資料夾</span>
-                <span class="last-time">2019/10/26 12:45</span>
-                <span class="created-time">2019/10/26 12:45</span>
+                <span class="name">{{item.name}}</span>
+                <span class="last-time">{{item.updateTime | dateFormat}}</span>
+                <span class="created-time">{{item.createTime| dateFormat}}</span>
               </div>
               <button class="option-button" @click="optionOn = 0">
                 <img src="../assets/img/option-button.png" alt="選項按鈕" />
@@ -46,11 +61,16 @@
             <span class="created-time">建立時間</span>
           </div>
           <ul class="list">
-            <li class="list-item" :class="{'active':optionOn === 1}">
+            <li
+              v-for="(item, index) in fileList"
+              :key="index"
+              class="list-item"
+              :class="{'active':optionOn === 1}"
+            >
               <div class="left">
-                <span class="name">我的資料夾</span>
-                <span class="last-time">2019/10/26 12:45</span>
-                <span class="created-time">2019/10/26 12:45</span>
+                <span class="name">{{item.name}}</span>
+                <span class="last-time">{{item.updateTime | dateFormat}}</span>
+                <span class="created-time">{{item.createTime| dateFormat}}</span>
               </div>
               <button class="option-button" @click="optionOn = 1">
                 <img src="../assets/img/option-button.png" alt="選項按鈕" />
@@ -69,6 +89,7 @@
 </template>
 
 <script>
+import { db } from "../db.js";
 export default {
   name: "file",
   data() {
@@ -76,7 +97,28 @@ export default {
       mainWidth: `${window.innerWidth}px`,
       menuOn: false,
       optionOn: null,
+      path: "/",
+      pathList: ["/"],
+      data: {},
+      folderList: [],
+      fileList: []
     };
+  },
+  filters: {
+    dateFormat: function(date) {
+      date = new Date(date);
+      return (
+        date.getFullYear() +
+        "/" +
+        date.getMonth() +
+        "/" +
+        date.getDate() +
+        " " +
+        date.getHours() +
+        ":" +
+        date.getMinutes()
+      );
+    }
   },
   methods: {
     toggleMenu: function() {
@@ -87,14 +129,63 @@ export default {
         this.mainWidth = `${window.innerWidth}px`;
       }
     },
+    updateList: function() {
+      const filesLength = this.data.files.length;
+      const that = this;
+      that.fileList = [];
+      that.folderList = [];
+      for (let i = 0; i < filesLength; i++) {
+        const currentFile = this.data.files[i];
+        if (that.path == currentFile.path) {
+          if (currentFile.type === "file") {
+            that.fileList.push(currentFile);
+          } else if (currentFile.type === "folder") {
+            that.folderList.push(currentFile);
+          }
+        }
+      }
+    },
+    openFolder: function(item) {
+      this.path = item.path + item.name + "/";
+      this.pathList = item.pathList || [];
+      this.pathList.push(item.name + "/");
+      this.updateList();
+    },
+    changePath: function(index) {
+      this.path = "";
+      for (let i = 0; i <= index; i++) {
+        this.path += this.pathList[i];
+      }
+      for (let i = 0; i < this.data.files.length; i++) {
+        if (this.data.files[i].type === "folder") {
+          let folderPath =
+            this.data.files[i].path + this.data.files[i].name + "/";
+          if (folderPath === this.path) {
+            this.openFolder(this.data.files[i]);
+            break;
+          }
+        }
+      }
+    }
   },
-  mounted(){
+  beforeMount() {
+    const that = this;
+    const database = db.database();
+    db.auth().onAuthStateChanged(function(user) {
+      if (user) {
+        database.ref(user.uid).on("value", function(snapshot) {
+          that.data = snapshot.val();
+          that.updateList();
+        });
+      }
+    });
+  },
+  mounted() {
     const that = this;
     // 點到小選單以外的地方的時候，選單會被關掉
-    window.addEventListener('click',function(event){
+    window.addEventListener("click", function(event) {
       let node = event.target.nodeName;
-      if(node != 'IMG' && node != 'BUTTON')
-      {
+      if (node != "IMG" && node != "BUTTON") {
         that.optionOn = null;
       }
     });
@@ -128,6 +219,21 @@ export default {
   height: 52px;
 }
 
+.bar .path {
+  color: #fff;
+  font-size: 24px;
+  margin-left: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.bar .path .path-link {
+  cursor: pointer;
+  margin-left: 5px;
+}
+.bar .path .path-link:hover {
+  font-weight: bold;
+}
 .wrap {
   display: flex;
   justify-content: flex-start;
@@ -188,11 +294,11 @@ export default {
   margin-top: 5px;
   position: relative;
 }
-.main .list-item:hover{
+.main .list-item:hover {
   background-color: #fff;
 }
 
-.main .list-item.active{
+.main .list-item.active {
   background-color: #fff;
 }
 
@@ -209,7 +315,7 @@ export default {
   align-items: center;
 }
 
-.main .list .list-item .option-button{
+.main .list .list-item .option-button {
   width: 40px;
   height: 40px;
   display: flex;
@@ -217,17 +323,17 @@ export default {
   align-items: center;
 }
 
-.main .list .list-item .option-button:hover{
-  border: 2px solid rgba(0,0,0,0.5);
+.main .list .list-item .option-button:hover {
+  border: 2px solid rgba(0, 0, 0, 0.5);
   border-radius: 5px;
 }
 
-.main .list .list-item .option-button img{
+.main .list .list-item .option-button img {
   width: 32px;
   height: 32px;
 }
 
-.main .list .list-item .option-list{
+.main .list .list-item .option-list {
   position: absolute;
   z-index: 1;
   right: 0px;
@@ -235,7 +341,7 @@ export default {
   background-color: #fff;
 }
 
-.main .list .list-item .option-list .option-list-item{
+.main .list .list-item .option-list .option-list-item {
   width: 150px;
   height: 50px;
   display: flex;
@@ -243,8 +349,7 @@ export default {
   align-items: center;
 }
 
-.main .list .list-item .option-list .option-list-item:hover{
-  background-color: #DDD;
+.main .list .list-item .option-list .option-list-item:hover {
+  background-color: #ddd;
 }
-
 </style>

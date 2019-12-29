@@ -5,6 +5,7 @@ import File from '../components/File.vue'
 import Index from '../components/Index.vue'
 import Signin from '../components/Signin.vue'
 import Signup from '../components/Signup.vue'
+import Redirect from '../components/Redirect.vue'
 
 Vue.use(Router);
 
@@ -37,7 +38,13 @@ export default new Router({
             ],
         },
         {
+            path: '/redirect',
+            name: 'redirect',
+            component: Redirect,
+        },
+        {
             path: '*',
+            name: 'other',
             redirect: '/',
         },
     ],

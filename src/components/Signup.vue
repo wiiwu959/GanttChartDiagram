@@ -34,7 +34,7 @@
           />
         </div>
         <div class="field">
-          <input type="button" class="submit" value="送出" @click="signup()"/>
+          <input type="button" class="submit" value="送出" @click="signUp()" />
         </div>
       </form>
     </div>
@@ -42,7 +42,7 @@
 </template>
 
 <script>
-import {db} from "../db.js";
+import { db } from "../db.js";
 const database = db.database();
 export default {
   name: "signup",
@@ -55,36 +55,83 @@ export default {
     };
   },
   methods: {
-    signup: function() {
+    signUp: function() {
       let that = this;
       // 透過 auth().createUserWithEmailAndPassword 建立使用者
-      db
-        .auth()
+      db.auth()
         .createUserWithEmailAndPassword(
           this.newInput.username,
           this.newInput.password
         )
-        .then(u => {
+        .then(temp => {
           // 取得註冊當下的時間
           let date = new Date();
           let now = date.getTime();
-
           // 記錄相關資訊到 firebase realtime database
           database
-            .ref(u.uid)
+            .ref(temp.user.uid)
             .set({
-              signup: now,
-              email: this.newInput.username
+              signupTime: now,
+              username: this.newInput.username,
+              files: [
+                {
+                  path: "",
+                  pathList: Array(),
+                  name: "",
+                  type: "folder"
+                },
+                {
+                  path: "/",
+                  pathList: ["/"],
+                  name: "New file",
+                  type: "file",
+                  createTime: now,
+                  updateTime: now,
+                  tasks: {
+                    data: [
+                      {
+                        id: 1,
+                        text: "Task #1",
+                        start_date: "18-08-2019",
+                        duration: 3,
+                        progress: 0.6
+                      }
+                    ]
+                  }
+                },
+                {
+                  path: "/",
+                  pathList: ["/"],
+                  name: "New folder",
+                  type: "folder",
+                  createTime: now,
+                  updateTime: now
+                }
+              ]
             })
             .then(() => {
               // 儲存成功後顯示訊息
-              alert('註冊成功！');
+              alert("註冊成功！");
+              db.auth().signOut();
               that.$router.push({ path: "/signin" });
             });
         })
-        .catch(err => {
+        .catch(error => {
           // 註冊失敗時顯示錯誤訊息
-          alert(err);
+          switch (error.code) {
+            case "auth/invalid-email":
+              alert("帳號格式錯誤。");
+              break;
+            case "auth/email-already-in-use":
+              alert("已存在此使用者");
+              break;
+            case "auth/operation-not-allowed":
+              alert("不允許此操作");
+              break;
+            case "auth/weak-password":
+              alert("密碼強度不足。");
+              break;
+          }
         });
     }
   }

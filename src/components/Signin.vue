@@ -13,14 +13,28 @@
       <form class="form">
         <div class="field">
           <label for="email">信箱：</label>
-          <input id="email" type="email" placeholder="請輸入信箱" class="email" required />
+          <input
+            id="email"
+            type="email"
+            placeholder="請輸入信箱"
+            class="email"
+            v-model="newInput.username"
+            required
+          />
         </div>
         <div class="field">
           <label for="password">密碼：</label>
-          <input id="password" type="password" placeholder="請輸入密碼" class="password" required />
+          <input
+            id="password"
+            type="password"
+            placeholder="請輸入密碼"
+            class="password"
+            v-model="newInput.password"
+            required
+          />
         </div>
         <div class="field">
-          <input type="submit" class="submit" value="送出" />
+          <input type="button" class="submit" value="送出" @click="signIn()" />
         </div>
       </form>
     </div>
@@ -35,40 +49,42 @@ export default {
   name: "signin",
   data() {
     return {
-      user: {},
-      isAuth: false
+      newInput: {
+        username: "",
+        password: ""
+      }
     };
   },
-  created() {
-    fAuth.onAuthStateChanged(user => {
-      if (user) {
-        this.user = user;
-        this.isAuth = true;
-      } else {
-        this.user = {};
-        this.isAuth = false;
-      }
-    });
-  },
   methods: {
-    login() {
-      const authProvider = new firebase.auth.GoogleAuthProvider();
-      fAuth
-        .signInWithPopup(authProvider)
-        .then(result => {
-          this.user = result.user;
-          this.isAuth = true;
+    signIn: function() {
+      let that = this;
+      db
+        .auth()
+        .signInWithEmailAndPassword(
+          this.newInput.username,
+          this.newInput.password
+        )
+        .then(function(temp) {
+          alert("登入成功！");
+          localStorage.setItem("signinToken", temp.user.refreshToken);
+          that.$router.push({ path: "/redirect" });
         })
-        .catch(err => console.error(err));
-    },
-    logout() {
-      fAuth
-        .signOut()
-        .then(() => {
-          this.user = {};
-          this.isAuth = false;
-        })
-        .catch(err => console.log(err));
+        .catch(function(error) {
+          switch (error.code) {
+            case "auth/invalid-email":
+              alert("帳號格式錯誤。");
+              break;
+            case "auth/user-disabled":
+              alert("帳戶被停用");
+              break;
+            case "auth/user-not-found":
+              alert("帳號不存在。");
+              break;
+            case "auth/wrong-password":
+              alert("密碼錯誤。");
+              break;
+          }
+        });
     }
   }
 };

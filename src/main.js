@@ -7,8 +7,8 @@ Vue.use(firestorePlugin);
 Vue.config.productionTip = false;
 
 router.beforeEach((to, from, next) => {
-  const isLogin = localStorage.getItem('token') == 'isLogin';
-  if (isLogin) {
+  const signinToken = localStorage.getItem('signinToken');
+  if (signinToken) {
       next();
   } else {
       if (to.path !== '/signin' && to.path !== '/signup')
