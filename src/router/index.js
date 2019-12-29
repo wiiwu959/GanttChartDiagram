@@ -6,15 +6,19 @@ import Index from '../components/Index.vue'
 import Signin from '../components/Signin.vue'
 import Signup from '../components/Signup.vue'
 
-Vue.use(Router)
+Vue.use(Router);
 
 export default new Router({
     routes: [
         {
             path: '/',
-            name: 'index',
             component: Index,
-            children:[
+            children: [
+                {
+                    path: '/',
+                    name: 'file',
+                    component: File
+                },
                 {
                     path: '/signin',
                     name: 'signin',
@@ -30,12 +34,11 @@ export default new Router({
                     name: 'gantt',
                     component: Gantt
                 },
-                {
-                    path: '/file',
-                    name: 'file',
-                    component: File
-                },
             ],
         },
-    ]
-})
+        {
+            path: '*',
+            redirect: '/',
+        },
+    ],
+});

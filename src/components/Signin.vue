@@ -1,162 +1,160 @@
 <template>
   <div class="all" id="vue-app">
-      <div class="top-bar"></div>
-      <div class="main">
-
-
-        <ul class="menu">
-              <li class="li"><button class="button" id="signup-button">註冊</button></li>
-              <li class="li"><button class="button" id="login-button">登入</button></li>
-        </ul>
-
-
-        <form class="form" id="signup">
-            <div class="field">
-                <label>信箱：</label>
-                <input id="signup-email" type="email" placeholder="請輸入信箱" class="email" required>
-            </div>
-            <div class="field">
-                <label>密碼：</label>
-                <input id="signup-password" type="password" placeholder="請輸入密碼" class="password" required>
-            </div>
-            <div class="field">
-                <input id="signup-submit" type="submit" class="submit" value="送出">
-            </div>
-        </form>
-
-
-      </div>
+    <div class="top-bar"></div>
+    <div class="main">
+      <ul class="menu">
+        <li class="li">
+          <router-link class="button" to="/signup" id="signup-button">註冊</router-link>
+        </li>
+        <li class="li">
+          <router-link class="button" to="/signin" id="login-button">登入</router-link>
+        </li>
+      </ul>
+      <form class="form">
+        <div class="field">
+          <label for="email">信箱：</label>
+          <input id="email" type="email" placeholder="請輸入信箱" class="email" required />
+        </div>
+        <div class="field">
+          <label for="password">密碼：</label>
+          <input id="password" type="password" placeholder="請輸入密碼" class="password" required />
+        </div>
+        <div class="field">
+          <input type="submit" class="submit" value="送出" />
+        </div>
+      </form>
     </div>
+  </div>
 </template>
 
 <script>
+import firebase from "firebase/app";
+import { db } from "../db.js";
+const fAuth = db.auth();
 export default {
-  name: 'signin',
+  name: "signin",
+  data() {
+    return {
+      user: {},
+      isAuth: false
+    };
+  },
+  created() {
+    fAuth.onAuthStateChanged(user => {
+      if (user) {
+        this.user = user;
+        this.isAuth = true;
+      } else {
+        this.user = {};
+        this.isAuth = false;
+      }
+    });
+  },
+  methods: {
+    login() {
+      const authProvider = new firebase.auth.GoogleAuthProvider();
+      fAuth
+        .signInWithPopup(authProvider)
+        .then(result => {
+          this.user = result.user;
+          this.isAuth = true;
+        })
+        .catch(err => console.error(err));
+    },
+    logout() {
+      fAuth
+        .signOut()
+        .then(() => {
+          this.user = {};
+          this.isAuth = false;
+        })
+        .catch(err => console.log(err));
+    }
+  }
 };
 </script>
 
 <style scoped>
-
-.all{
-  height: 100%;
-  width: 100%;
-  /* display: flex;
-  flex-direction: column;
+.all {
+  display: flex;
   justify-content: center;
-  align-items: center; */
+  align-items: center;
+  background-color: #eeeeee;
+  flex-direction: column;
 }
-
-
-.top-bar{
-  /* top: 80px; */
-  left: 0px;
-  width: 1280px;
+.top-bar {
+  width: 100%;
   height: 80px;
-  position: relative;
-  background: #00BBFF 0% 0% no-repeat padding-box;
-  opacity: 1;
+  background-color: #00bbff;
 }
-
-.main{
+.main {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  position: relative;
-  /* top: 80px; */
-  left: 0px;
-  width: 1280px;
-  height: 640px;
-  background: #EEEEEE 0% 0% no-repeat padding-box;
+  padding: 84px 0;
 }
-
-.menu{
-  position: relative;
-  top: 2px;
-  left: -356px;
+.menu {
+  width: 100%;
   display: flex;
   justify-content: flex-start;
-
-
+  align-items: center;
+}
+.menu .li {
+  margin-right: 10px;
 }
 
-.menu .li{
-
-  display: inline;
-  margin: 0px 5px;
-}
-
-.menu .li #signup-button{
-  top: 84px;
-  left: 160px;
+.menu .li .button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   width: 120px;
   height: 54px;
-  background: #EEEEEE 0% 0% no-repeat padding-box;
-  border: 2px solid #00BBFF;
-  border-radius: 10px 10px 0px 0px;
-  opacity: 1;
-  letter-spacing: 0;
+  border: 2px solid #00bbff;
   color: #000000;
-  font-family: 'Noto Sans TC', Regular;
-  font-size: 24px;
-}
-
-.menu .li #login-button{
-  font-family: 'Noto Sans TC', Regular;
-  font-size: 24px;
-  top: 244px;
-  left: 290px;
-  width: 120px;
-  height: 54px;
-  background: #00BBFF 0% 0% no-repeat padding-box;
-  border: 1px solid #00BBFF;
+  border-bottom: 0;
   border-radius: 10px 10px 0px 0px;
-  opacity: 1;
+  font-size: 24px;
+  text-decoration: none;
 }
 
-.form{
+.menu .li .button:hover {
+  background: #00bbff;
+}
 
-  top: 216px;
-  left: 160px;
+.menu .li #login-button {
+  background-color: #00bbff;
+}
+.form {
   width: 960px;
   height: 420px;
-  background: #EEEEEE 0% 0% no-repeat padding-box;
-  border: 2px solid #00BBFF;
-  opacity: 1;
+  border: 2px solid #00bbff;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 20px;
 }
-
-.field{
+.field {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   margin: 10px;
   font-size: 24px;
-  font-family: 'Noto Sans TC', Regular;
 }
-
-.form input{
-  height: 36px;
-  background: #FFFFFF 0% 0% no-repeat padding-box;
-  border: 1px solid #707070;
-  opacity: 1;
+.form input {
   font-size: 24px;
-  font-family: 'Noto Sans TC', Regular;
   padding-left: 10px;
 }
-
-.form #signup-submit{
-  top: 550px;
-  left: 590px;
+.form .submit {
   width: 100px;
-  height: 49px;
-  background: #FFFFFF 0% 0% no-repeat padding-box;
-  border: 1px solid #00BBFF;
+  height: 50px;
+  background-color: #fff;
+  border: 2px solid #00bbff;
   border-radius: 10px;
-  opacity: 1;
   font-size: 24px;
-  font-family: 'Noto Sans TC', Regular;
 }
 
+.form .submit:hover {
+  background-color: #00bbff;
+}
 </style>
