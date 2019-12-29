@@ -1,185 +1,257 @@
 <template>
-  <div>
-    <!-- 這裡是甘特圖的頁面 -->
-    <ejs-gantt
-      ref="gantt"
-      id="GanttContainer"
-      :dataSource="data"
-      :taskFields="taskFields"
-      :height="height"
-      :editDialogFields="editDialogFields"
-      :editSettings="editSettings"
-      :resourceNameMapping="resourceNameMapping"
-      :resourceIDMapping="resourceIdMapping"
-      :resources="resources"
-      :allowSorting="true"
-    ></ejs-gantt>
+  <div class="gantt-app">
+    <div class="bar">
+      <button class="button" @click="exportListOn = !exportListOn">
+        輸出
+        <ul class="export-list" v-if="exportListOn === true" @click="exportListOn = false">
+          <li class="export-item" @click="exportFile('pdf')">Export to PDF</li>
+          <li class="export-item" @click="exportFile('png')">Export to PNG</li>
+          <li class="export-item" @click="exportFile('meadow')">Export :: Meadow</li>
+          <li class="export-item" @click="exportFile('broadway')">Export :: Broadway</li>
+          <li class="export-item" @click="exportFile('skyblue')">Export :: Skyblue</li>
+          <li class="export-item" @click="exportFile('material')">Export :: Material</li>
+        </ul>
+      </button>
+
+      <button class="export-item" @click="zoom('in')">
+        <img src="..\assets\img\ic_zoom_in_24px.png" alt />
+      </button>
+      <button class="export-item" @click="zoom('out')">
+        <img src="..\assets\img\ic_zoom_out_24px.png" alt />
+      </button>
+    </div>
+    <div ref="gantt" class="left-container"></div>
   </div>
 </template>
 <script>
-import Vue from "vue";
-import { GanttPlugin, Sort, Edit, Selection } from "@syncfusion/ej2-vue-gantt";
-import { ButtonPlugin } from "@syncfusion/ej2-vue-buttons";
-Vue.use(GanttPlugin);
-Vue.use(ButtonPlugin);
+import gantt from "dhtmlx-gantt";
+import "dhtmlx-gantt/codebase/dhtmlxgantt.css";
+import "dhtmlx-gantt/codebase/locale/locale_cn"; // 本地化
 export default {
-  name: 'gantt',
-  data: function() {
+  name: "Gantt",
+  data() {
     return {
-      data: [
+      file:{},
+      exportListOn: false
+    };
+  },
+  beforeMount() {
+    if (gantt.$_eventsInitialized) return;
+    gantt.attachEvent("onTaskSelected", id => {
+      let task = gantt.getTask(id);
+      this.$emit("task-selected", task);
+    });
+
+    gantt.attachEvent("onAfterTaskAdd", (id, task) => {
+      this.$emit("task-updated", id, "inserted", task);
+      task.progress = task.progress || 0;
+      if (gantt.getSelectedId() == id) {
+        this.$emit("task-selected", task);
+      }
+    });
+
+    gantt.attachEvent("onAfterTaskUpdate", (id, task) => {
+      this.$emit("task-updated", id, "updated", task);
+    });
+
+    gantt.attachEvent("onAfterTaskDelete", id => {
+      this.$emit("task-updated", id, "deleted");
+      if (!gantt.getSelectedId()) {
+        this.$emit("task-selected", null);
+      }
+    });
+
+    gantt.attachEvent("onAfterLinkAdd", (id, link) => {
+      this.$emit("link-updated", id, "inserted", link);
+    });
+
+    gantt.attachEvent("onAfterLinkUpdate", (id, link) => {
+      this.$emit("link-updated", id, "updated", link);
+    });
+
+    gantt.attachEvent("onAfterLinkDelete", (id, link) => {
+      this.$emit("link-updated", id, "deleted");
+    });
+    gantt.$_eventsInitialized = true;
+
+    gantt.config.open_tree_initially = true;
+    //   gantt.config.scale_unit = 'day';
+    //   gantt.config.scale_height = 50;
+    //   gantt.config.row_height = 40;
+    //   gantt.config.task_height = 20;
+    //   gantt.config.date_grid = "%Y/%m/%d";
+    gantt.attachEvent("onTemplatesReady", function() {
+      //依照年月日顯示欄位
+      // gantt.templates.date_scale = function (date) {
+      //     let y = gantt.date.date_to_str("%Y");
+      //     y = y(date);
+      //     let d = gantt.date.date_to_str("%n/%j");
+      //     let md = d(date);
+      //     let cy = '<div style="opacity:0.6; font-size:0.9em; height:15px; line-height:15px;">' + y + '</div>';
+      //     let cd = '<div style="font-size:1.1em; height:15px; line-height:15px;">' + md + '</div>';
+      //     return '<div style="padding:10px 0px;">' + cy + cd + '</div>';
+      // };
+
+      //針對週末標注為灰色
+      gantt.templates.scale_cell_class = function(date) {
+        if (date.getDay() === 0 || date.getDay() === 6) {
+          return "dhtmlxgantt_weekend";
+        }
+      };
+    });
+
+    gantt.ext.zoom.init({
+      levels: [
         {
-          TaskID: 1,
-          TaskName: "Project Initiation",
-          StartDate: new Date("04/02/2019"),
-          EndDate: new Date("04/21/2019"),
-          subtasks: [
+          name: "day",
+          scale_height: 27,
+          min_column_width: 80,
+          scales: [{ unit: "day", step: 1, format: "%d %M" }]
+        },
+        {
+          name: "week",
+          scale_height: 50,
+          min_column_width: 50,
+          scales: [
             {
-              TaskID: 2,
-              TaskName: "Identify Site location",
-              StartDate: new Date("04/02/2019"),
-              Duration: 4,
-              Progress: 50,
-              Indicators: [
-                {
-                  date: "04/08/2019",
-                  iconClass:
-                    "e-btn-icon e-notes-info e-icons e-icon-left e-gantt e-notes-info::before",
-                  name: "Custom String",
-                  tooltip: "Follow up"
-                },
-                {
-                  date: "04/11/2019",
-                  iconClass:
-                    "e-btn-icon e-notes-info e-icons e-icon-left e-gantt e-notes-info::before",
-                  name: '<span style="color:red">String Template</span>'
-                }
-              ]
+              unit: "week",
+              step: 1,
+              format: function(date) {
+                var dateToStr = gantt.date.date_to_str("%d %M");
+                var endDate = gantt.date.add(date, -6, "day");
+                var weekNum = gantt.date.date_to_str("%W")(date);
+                return (
+                  "#" +
+                  weekNum +
+                  ", " +
+                  dateToStr(date) +
+                  " - " +
+                  dateToStr(endDate)
+                );
+              }
             },
+            { unit: "day", step: 1, format: "%j %D" }
+          ]
+        },
+        {
+          name: "month",
+          scale_height: 50,
+          min_column_width: 120,
+          scales: [
+            { unit: "month", format: "%F, %Y" },
+            { unit: "week", format: "Week #%W" }
+          ]
+        },
+        {
+          name: "quarter",
+          height: 50,
+          min_column_width: 90,
+          scales: [
+            { unit: "month", step: 1, format: "%M" },
             {
-              TaskID: 3,
-              TaskName: "Perform Soil test",
-              StartDate: new Date("04/02/2019"),
-              Duration: 4,
-              Progress: 50
-            },
-            {
-              TaskID: 4,
-              TaskName: "Soil test approval",
-              StartDate: new Date("04/02/2019"),
-              Duration: 4,
-              Progress: 50
+              unit: "quarter",
+              step: 1,
+              format: function(date) {
+                var dateToStr = gantt.date.date_to_str("%M");
+                var endDate = gantt.date.add(
+                  gantt.date.add(date, 3, "month"),
+                  -1,
+                  "day"
+                );
+                return dateToStr(date) + " - " + dateToStr(endDate);
+              }
             }
           ]
         },
         {
-          TaskID: 5,
-          TaskName: "Project Estimation",
-          StartDate: new Date("04/02/2019"),
-          EndDate: new Date("04/21/2019"),
-          subtasks: [
-            {
-              TaskID: 6,
-              TaskName: "Develop floor plan for estimation",
-              StartDate: new Date("04/04/2019"),
-              Duration: 3,
-              Progress: 50,
-              Indicators: [
-                {
-                  date: "04/10/2019",
-                  iconClass:
-                    "e-btn-icon e-notes-info e-icons e-icon-left e-gantt e-notes-info::before",
-                  name: "Indicator title",
-                  tooltip: "tooltip"
-                }
-              ]
-            },
-            {
-              TaskID: 7,
-              TaskName: "List materials",
-              StartDate: new Date("04/04/2019"),
-              Duration: 3,
-              Progress: 50
-            },
-            {
-              TaskID: 8,
-              TaskName: "Estimation approval",
-              StartDate: new Date("04/04/2019"),
-              Duration: 3,
-              Progress: 50
-            }
-          ]
+          name: "year",
+          scale_height: 50,
+          min_column_width: 30,
+          scales: [{ unit: "year", step: 1, format: "%Y" }]
         }
-      ],
-      taskFields: {
-        id: "TaskID",
-        name: "TaskName",
-        startDate: "StartDate",
-        endDate: "EndDate",
-        duration: "Duration",
-        progress: "Progress",
-        dependency: "Predecessor",
-        child: "subtasks",
-        notes: "info",
-        resourceInfo: "resources"
-      },
-      editDialogFields: [
-        { type: "General", headerText: "General" },
-        { type: "Dependency" },
-        { type: "Resources" },
-        { type: "Notes" }
-      ],
-      height: "450px",
-      resourceNameMapping: "resourceName",
-      resourceIdMapping: "resourceId",
-      resources: [
-        { resourceId: 1, resourceName: "Martin Tamer" },
-        { resourceId: 2, resourceName: "Rose Fuller" },
-        { resourceId: 3, resourceName: "Margaret Buchanan" },
-        { resourceId: 4, resourceName: "Fuller King" },
-        { resourceId: 5, resourceName: "Davolio Fuller" },
-        { resourceId: 6, resourceName: "Van Jack" },
-        { resourceId: 7, resourceName: "Fuller Buchanan" },
-        { resourceId: 8, resourceName: "Jack Davolio" },
-        { resourceId: 9, resourceName: "Tamer Vinet" },
-        { resourceId: 10, resourceName: "Vinet Fuller" },
-        { resourceId: 11, resourceName: "Bergs Anton" },
-        { resourceId: 12, resourceName: "Construction Supervisor" }
-      ],
-      editSettings: {
-        allowEditing: true,
-        allowTaskbarEditing: true
-      }
-    };
+      ]
+    });
+
+    gantt.ext.zoom.setLevel("month");
   },
-  provide: {
-    gantt: [Sort, Edit, Selection]
+  mounted() {
+    this.file = this.$route.params.file;
+    // 初始化
+    gantt.init(this.$refs.gantt, new Date(2019, 7, 1), new Date(2020, 8, 1));
+    // 讀取資料
+    gantt.parse(this.file.tasks);
   },
   methods: {
-    edit: function() {
-      var ganttObj = document.getElementById("GanttContainer").ej2_instances[0];
-      ganttObj.editModule.dialogModule.openEditDialog();
+    exportFile: function(format) {
+      switch (format) {
+        case "pdf":
+          gantt.exportToPDF();
+          break;
+        case "png":
+          gantt.exportToPNG();
+          break;
+        case "material":
+          gantt.exportToPNG({ skin: "material" });
+          break;
+        case "meadow":
+          gantt.exportToPNG({ skin: "meadow" });
+          break;
+        case "broadway":
+          gantt.exportToPDF({ skin: "broadway" });
+          break;
+        case "skyblue":
+          gantt.exportToPDF({ skin: "skyblue" });
+          break;
+      }
     },
-    add: function() {
-      var ganttObj = document.getElementById("GanttContainer").ej2_instances[0];
-      ganttObj.editModule.dialogModule.openAddDialog();
+    zoom: function(mode) {
+      if (mode === "in") {
+        gantt.ext.zoom.zoomIn();
+      } else {
+        gantt.ext.zoom.zoomOut();
+      }
     }
   }
 };
 </script>
-
 <style scoped>
-@import "../../node_modules/@syncfusion/ej2-base/styles/material.css";
-@import "../../node_modules/@syncfusion/ej2-buttons/styles/material.css";
-@import "../../node_modules/@syncfusion/ej2-calendars/styles/material.css";
-@import "../../node_modules/@syncfusion/ej2-dropdowns/styles/material.css";
-@import "../../node_modules/@syncfusion/ej2-inputs/styles/material.css";
-@import "../../node_modules/@syncfusion/ej2-navigations/styles/material.css";
-@import "../../node_modules/@syncfusion/ej2-lists/styles/material.css";
-@import "../../node_modules/@syncfusion/ej2-layouts/styles/material.css";
-@import "../../node_modules/@syncfusion/ej2-popups/styles/material.css";
-@import "../../node_modules/@syncfusion/ej2-splitbuttons/styles/material.css";
-@import "../../node_modules/@syncfusion/ej2-grids/styles/material.css";
-@import "../../node_modules/@syncfusion/ej2-richtexteditor/styles/material.css";
-@import "../../node_modules/@syncfusion/ej2-treegrid/styles/material.css";
-@import "../../node_modules/@syncfusion/ej2-vue-gantt/styles/material.css";
+.left-container {
+  height: 600px;
+}
+
+.gantt-app .bar {
+  display: flex;
+  align-items: center;
+  height: 80px;
+  background-color: #00bbff;
+}
+
+.gantt-app .bar button {
+  color: #fff;
+  padding: 0 5px;
+  font-size: 16px;
+  margin-left: 40px;
+  position: relative;
+  height: 100%;
+}
+.gantt-app .bar .export-list {
+  width: 200px;
+  position: absolute;
+  z-index: 1;
+  background-color: #fff;
+  color: #000;
+  top: 80px;
+  border: #00bbff solid 2px;
+  border-top: 0;
+}
+.gantt-app .bar .export-list .export-item {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 10px 5px;
+}
+
+.gantt-app .bar .export-list .export-item:hover {
+  background-color: #00bbff;
+}
 </style>

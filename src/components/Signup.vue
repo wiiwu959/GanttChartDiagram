@@ -75,6 +75,7 @@ export default {
               username: this.newInput.username,
               files: [
                 {
+                  createTime: now,
                   path: "",
                   pathList: Array(),
                   name: "",

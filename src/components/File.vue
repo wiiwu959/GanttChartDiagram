@@ -66,13 +66,14 @@
               :key="index"
               class="list-item"
               :class="{'active':optionOn === 1}"
+              @click="openFile(item)"
             >
               <div class="left">
                 <span class="name">{{item.name}}</span>
                 <span class="last-time">{{item.updateTime | dateFormat}}</span>
                 <span class="created-time">{{item.createTime| dateFormat}}</span>
               </div>
-              <button class="option-button" @click="optionOn = 1">
+              <button class="option-button" @click.stop="optionOn = 1">
                 <img src="../assets/img/option-button.png" alt="選項按鈕" />
               </button>
               <ul class="option-list" v-if="optionOn === 1">
@@ -146,16 +147,11 @@ export default {
       }
     },
     openFolder: function(item) {
-      console.log(item);
-      console.log(this.path);
       if (this.path != item.path + item.name + "/") {
         this.path = item.path + item.name + "/";
-        if(item.pathList != undefined)
-        {
+        if (item.pathList != undefined) {
           this.pathList = item.pathList.slice();
-        }
-        else
-        {
+        } else {
           this.pathList = [];
         }
         this.pathList.push(item.name + "/");
@@ -177,6 +173,14 @@ export default {
           }
         }
       }
+    },
+    openFile: function(item) {
+      this.$router.push({
+        name: `gantt`,
+        params: {
+          file: item
+        }
+      });
     }
   },
   beforeMount() {
