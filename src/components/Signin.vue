@@ -66,7 +66,6 @@ export default {
         )
         .then(function(temp) {
           alert("登入成功！");
-          localStorage.setItem("signinToken", temp.user.refreshToken);
           that.$router.push({ path: "/redirect" });
         })
         .catch(function(error) {

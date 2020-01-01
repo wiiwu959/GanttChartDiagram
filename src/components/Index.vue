@@ -3,7 +3,11 @@
     <!-- 這裡是首頁 -->
     <header class="header">
       <img class="gantt-logo" src="../assets/img/logo.png" />
-      <button class="signout-button" @click="signOut()" v-if="signinToken!==''">登出</button>
+      <span
+        class="hello"
+        v-if="userInformation !== null"
+      >{{ userInformation.nickname || '' | greetFormat }}</span>
+      <button class="signout-button" @click="signOut()" v-if="userInformation !== null">登出</button>
     </header>
     <!-- router-view 會依據網址改變內容 -->
     <!-- 可以看 router/index.js -->
@@ -17,12 +21,21 @@ export default {
   name: "index",
   data() {
     return {
-      signinToken: "",
-      files: []
+      userInformation: null
     };
   },
-  beforeMount() {
-    this.signinToken = localStorage.getItem("signinToken") || "";
+  filters: {
+    greetFormat: function(name) {
+      let date = new Date();
+      if (name !== "") {
+        switch (Math.round(Math.random())) {
+          case 0:
+            return name + "，今天打算做什麼呢？";
+          case 1:
+            return "嗨！" + name;
+        }
+      }
+    }
   },
   methods: {
     signOut: function() {
@@ -30,14 +43,26 @@ export default {
       db.auth()
         .signOut()
         .then(function() {
-          that.signinToken = "";
-          localStorage.setItem("signinToken", that.signinToken);
+          that.userInformation = null;
           that.$router.push({ path: "/signin" });
         })
         .catch(function(error) {
           alert(error);
         });
     }
+  },
+  beforeCreate() {
+    const that = this;
+    const database = db.database();
+    db.auth().onAuthStateChanged(function(user) {
+      if (user) {
+        database.ref(user.uid).on("value", function(snapshot) {
+          that.userInformation = snapshot.val().userInformation;
+        });
+      } else {
+        that.userInformation = null;
+      }
+    });
   }
 };
 </script>

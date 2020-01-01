@@ -34,7 +34,7 @@
 </template>
 <script>
 import gantt from "dhtmlx-gantt";
-import "dhtmlx-gantt/codebase/skins/dhtmlxgantt_material.css";
+import "dhtmlx-gantt/codebase/dhtmlxgantt.css";
 import "dhtmlx-gantt/codebase/locale/locale_cn"; // 本地化
 import { db } from "../db.js";
 
@@ -203,7 +203,7 @@ export default {
         if (user) {
           // 找出createTime一樣的檔案 蓋掉 然後整筆丟回去
           for (let i = 0; i < that.data.files.length; i++) {
-            if (that.data.files[i].createTime === that.file.createTime) {
+            if (that.data.files[i].id === that.file.id) {
               that.data.files[i] = JSON.parse(JSON.stringify(that.file));
               break;
             }

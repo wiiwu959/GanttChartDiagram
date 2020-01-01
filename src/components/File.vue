@@ -111,7 +111,7 @@ export default {
       return (
         date.getFullYear() +
         "/" +
-        date.getMonth() +
+        (date.getMonth() + 1) +
         "/" +
         date.getDate() +
         " " +
@@ -132,16 +132,15 @@ export default {
     },
     updateList: function() {
       const filesLength = this.data.files.length;
-      const that = this;
-      that.fileList = [];
-      that.folderList = [];
+      this.fileList = [];
+      this.folderList = [];
       for (let i = 0; i < filesLength; i++) {
         const currentFile = this.data.files[i];
-        if (that.path == currentFile.path) {
+        if (this.path === currentFile.path) {
           if (currentFile.type === "file") {
-            that.fileList.push(currentFile);
+            this.fileList.push(currentFile);
           } else if (currentFile.type === "folder") {
-            that.folderList.push(currentFile);
+            this.folderList.push(currentFile);
           }
         }
       }
@@ -179,7 +178,7 @@ export default {
         name: `gantt`,
         params: {
           file: item,
-          data: this.data,
+          data: this.data
         }
       });
     }

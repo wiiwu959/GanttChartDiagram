@@ -12,6 +12,17 @@
       </ul>
       <form class="form">
         <div class="field">
+          <label for="nickname">暱稱：</label>
+          <input
+            id="nickname"
+            type="text"
+            placeholder="請輸入暱稱"
+            class="text"
+            v-model="newInput.nickname"
+            required
+          />
+        </div>
+        <div class="field">
           <label for="email">信箱：</label>
           <input
             id="email"
@@ -50,11 +61,28 @@ export default {
     return {
       newInput: {
         username: "",
-        password: ""
+        password: "",
+        nickname: ""
       }
     };
   },
   methods: {
+    createID: function() {
+      var d = Date.now();
+      if (
+        typeof performance !== "undefined" &&
+        typeof performance.now === "function"
+      ) {
+        d += performance.now(); //use high-precision timer if available
+      }
+      return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(
+        c
+      ) {
+        var r = (d + Math.random() * 16) % 16 | 0;
+        d = Math.floor(d / 16);
+        return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+      });
+    },
     signUp: function() {
       let that = this;
       // 透過 auth().createUserWithEmailAndPassword 建立使用者
@@ -71,10 +99,14 @@ export default {
           database
             .ref(temp.user.uid)
             .set({
-              signupTime: now,
-              username: this.newInput.username,
+              userInformation: {
+                signupTime: now,
+                username: this.newInput.username,
+                nickname: this.newInput.nickname
+              },
               files: [
                 {
+                  id: 'folder-' + this.createID(),
                   createTime: now,
                   path: "",
                   pathList: Array(),
@@ -82,9 +114,10 @@ export default {
                   type: "folder"
                 },
                 {
+                  id: 'file-' + this.createID(),
                   path: "/",
                   pathList: ["/"],
-                  name: "New file",
+                  name: "新檔案",
                   type: "file",
                   createTime: now,
                   updateTime: now,
@@ -92,8 +125,13 @@ export default {
                     data: [
                       {
                         id: 1,
-                        text: "Task #1",
-                        start_date: "18-08-2019",
+                        text: "新任務",
+                        start_date:
+                          date.getDate() +
+                          "-" +
+                          (date.getMonth() + 1) +
+                          "-" +
+                          date.getFullYear(),
                         duration: 3,
                         progress: 0.6
                       }
@@ -101,9 +139,10 @@ export default {
                   }
                 },
                 {
+                  id: 'folder-' + this.createID(),
                   path: "/",
                   pathList: ["/"],
-                  name: "New folder",
+                  name: "新資料夾",
                   type: "folder",
                   createTime: now,
                   updateTime: now
