@@ -164,7 +164,7 @@ export default {
     let recaptchaScript = document.createElement("script");
     recaptchaScript.setAttribute(
       "src",
-      "http://export.dhtmlx.com/gantt/api.js"
+      "https://export.dhtmlx.com/gantt/api.js"
     );
     document.head.appendChild(recaptchaScript);
     gantt.render();
