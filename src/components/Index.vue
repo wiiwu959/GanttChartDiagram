@@ -51,7 +51,7 @@ export default {
         });
     }
   },
-  beforeCreate() {
+  mounted() {
     const that = this;
     const database = db.database();
     db.auth().onAuthStateChanged(function(user) {

@@ -106,7 +106,7 @@ export default {
               },
               files: [
                 {
-                  id: 'folder-' + this.createID(),
+                  id: "folder-" + this.createID(),
                   createTime: now,
                   path: "",
                   pathList: Array(),
@@ -114,7 +114,7 @@ export default {
                   type: "folder"
                 },
                 {
-                  id: 'file-' + this.createID(),
+                  id: "file-" + this.createID(),
                   path: "/",
                   pathList: ["/"],
                   name: "新檔案",
@@ -139,7 +139,7 @@ export default {
                   }
                 },
                 {
-                  id: 'folder-' + this.createID(),
+                  id: "folder-" + this.createID(),
                   path: "/",
                   pathList: ["/"],
                   name: "新資料夾",
@@ -150,10 +150,9 @@ export default {
               ]
             })
             .then(() => {
-              // 儲存成功後顯示訊息
+              // 註冊成功後顯示訊息 已自動登入
               alert("註冊成功！");
-              db.auth().signOut();
-              that.$router.push({ path: "/signin" });
+              that.$router.push({name: 'file'});
             });
         })
         .catch(error => {
