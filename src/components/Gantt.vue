@@ -15,10 +15,6 @@
           <ul class="export-list" v-if="exportListOn === true" @click="exportListOn = false">
             <li class="export-item" @click="exportFile('pdf')">Export to PDF</li>
             <li class="export-item" @click="exportFile('png')">Export to PNG</li>
-            <!-- <li class="export-item" @click="exportFile('meadow')">Export :: Meadow</li>
-            <li class="export-item" @click="exportFile('broadway')">Export :: Broadway</li>
-            <li class="export-item" @click="exportFile('skyblue')">Export :: Skyblue</li>
-            <li class="export-item" @click="exportFile('material')">Export :: Material</li>-->
           </ul>
         </button>
         <button class="button" @click="saveFile()">
@@ -87,30 +83,6 @@ export default {
     gantt.$_eventsInitialized = true;
 
     gantt.config.open_tree_initially = true;
-    //   gantt.config.scale_unit = 'day';
-    //   gantt.config.scale_height = 50;
-    //   gantt.config.row_height = 40;
-    //   gantt.config.task_height = 20;
-    //   gantt.config.date_grid = "%Y/%m/%d";
-    // gantt.attachEvent("onTemplatesReady", function() {
-    //依照年月日顯示欄位
-    // gantt.templates.date_scale = function (date) {
-    //     let y = gantt.date.date_to_str("%Y");
-    //     y = y(date);
-    //     let d = gantt.date.date_to_str("%n/%j");
-    //     let md = d(date);
-    //     let cy = '<div style="opacity:0.6; font-size:0.9em; height:15px; line-height:15px;">' + y + '</div>';
-    //     let cd = '<div style="font-size:1.1em; height:15px; line-height:15px;">' + md + '</div>';
-    //     return '<div style="padding:10px 0px;">' + cy + cd + '</div>';
-    // };
-
-    //針對週末標注為灰色
-    //   gantt.templates.scale_cell_class = function(date) {
-    //     if (date.getDay() === 0 || date.getDay() === 6) {
-    //       return "dhtmlxgantt_weekend";
-    //     }
-    //   };
-    // });
 
     gantt.ext.zoom.init({
       levels: [
@@ -184,7 +156,7 @@ export default {
     this.data = this.$route.params.data;
 
     // 初始化
-    gantt.init(this.$refs.gantt, new Date(2019, 9, 1), new Date(2020, 2, 1));
+    gantt.init(this.$refs.gantt);
     // 讀取資料
     if (this.file.tasks) {
       gantt.parse(this.file.tasks);
@@ -195,6 +167,7 @@ export default {
       "http://export.dhtmlx.com/gantt/api.js"
     );
     document.head.appendChild(recaptchaScript);
+    gantt.render();
   },
   methods: {
     saveFile: function() {
@@ -262,23 +235,11 @@ export default {
     exportFile: function(format) {
       switch (format) {
         case "pdf":
-          gantt.exportToPDF({ skin: "material" });
+          gantt.exportToPDF();
           break;
         case "png":
-          gantt.exportToPNG({ skin: "material" });
+          gantt.exportToPNG();
           break;
-        // case "material":
-        //   gantt.exportToPNG({ skin: "material" });
-        //   break;
-        // case "meadow":
-        //   gantt.exportToPNG({ skin: "meadow" });
-        //   break;
-        // case "broadway":
-        //   gantt.exportToPDF({ skin: "broadway" });
-        //   break;
-        // case "skyblue":
-        //   gantt.exportToPDF({ skin: "skyblue" });
-        //   break;
       }
     },
     zoom: function(mode) {
@@ -291,6 +252,7 @@ export default {
   }
 };
 </script>
+
 <style scoped>
 .left-container {
   height: calc(100vh - 160px);
