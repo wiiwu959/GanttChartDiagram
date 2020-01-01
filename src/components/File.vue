@@ -3,7 +3,7 @@
   <!-- <img src="../assets/illustration/file.png" alt=""> -->
   <div>
     <div class="bar">
-      <button class="menu-button" @click="toggleMenu()">
+      <button class="menu-button" @click="menuOn = !menuOn;" :class="{'menu-on': menuOn}">
         <img src="../assets/img/menu-button.png" />
       </button>
       <ul class="path">
@@ -19,11 +19,11 @@
     <div class="wrap">
       <aside class="menu" v-if="menuOn">
         <ul class="menu-list">
-          <li class="menu-item">新增文件</li>
-          <li class="menu-item">新增資料夾</li>
+          <li class="menu-item" @click="createFile('file')">新增檔案</li>
+          <li class="menu-item" @click="createFile('folder')">新增資料夾</li>
         </ul>
       </aside>
-      <main class="main" :style="{width: mainWidth}">
+      <main class="main">
         <div class="folders">
           <div class="title">
             <span class="name">資料夾</span>
@@ -43,13 +43,13 @@
                 <span class="last-time">{{item.updateTime | dateFormat}}</span>
                 <span class="created-time">{{item.createTime| dateFormat}}</span>
               </div>
-              <button class="option-button" @click.stop="optionOn = 0">
+              <button class="option-button" @click.stop="optionOn = item.id">
                 <img src="../assets/img/option-button.png" alt="選項按鈕" />
               </button>
-              <ul class="option-list" v-if="optionOn === 0">
-                <li class="option-list-item">重新命名</li>
-                <li class="option-list-item">複製資料夾</li>
-                <li class="option-list-item">刪除資料夾</li>
+              <ul class="option-list" v-if="optionOn === item.id">
+                <li class="option-list-item" @click.stop="renameFile(item); optionOn = null;">重新命名</li>
+                <li class="option-list-item" @click.stop="copyFile(item); optionOn = null;">複製資料夾</li>
+                <li class="option-list-item" @click.stop="deleteFile(item); optionOn = null;">刪除資料夾</li>
               </ul>
             </li>
           </ul>
@@ -73,13 +73,13 @@
                 <span class="last-time">{{item.updateTime | dateFormat}}</span>
                 <span class="created-time">{{item.createTime| dateFormat}}</span>
               </div>
-              <button class="option-button" @click.stop="optionOn = 1">
+              <button class="option-button" @click.stop="optionOn = item.id">
                 <img src="../assets/img/option-button.png" alt="選項按鈕" />
               </button>
-              <ul class="option-list" v-if="optionOn === 1">
-                <li class="option-list-item">重新命名</li>
-                <li class="option-list-item">複製檔案</li>
-                <li class="option-list-item">刪除檔案</li>
+              <ul class="option-list" v-if="optionOn === item.id">
+                <li class="option-list-item" @click.stop="renameFile(item); optionOn = null;">重新命名</li>
+                <li class="option-list-item" @click.stop="copyFile(item); optionOn = null;">複製檔案</li>
+                <li class="option-list-item" @click.stop="deleteFile(item); optionOn = null;">刪除檔案</li>
               </ul>
             </li>
           </ul>
@@ -98,8 +98,8 @@ export default {
       mainWidth: `${window.innerWidth}px`,
       menuOn: false,
       optionOn: null,
-      path: "/",
-      pathList: ["/"],
+      path: this.$route.params.path || "/",
+      pathList: this.$route.params.pathList ||  ["/"],
       data: {},
       folderList: [],
       fileList: []
@@ -122,14 +122,130 @@ export default {
     }
   },
   methods: {
-    toggleMenu: function() {
-      this.menuOn = !this.menuOn;
-      if (this.menuOn === true) {
-        this.mainWidth = `${window.innerWidth - 240}px`;
-      } else {
-        this.mainWidth = `${window.innerWidth}px`;
+    // 隨機產生一串ID
+    createID: function() {
+      var d = Date.now();
+      if (
+        typeof performance !== "undefined" &&
+        typeof performance.now === "function"
+      ) {
+        d += performance.now(); //use high-precision timer if available
+      }
+      return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(
+        c
+      ) {
+        var r = (d + Math.random() * 16) % 16 | 0;
+        d = Math.floor(d / 16);
+        return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+      });
+    },
+    // 更新資料庫（整筆丟回去）
+    updateDatabase() {
+      let that = this;
+      // 確認登入狀態
+      db.auth().onAuthStateChanged(function(user) {
+        if (user) {
+          db.database()
+            .ref(user.uid)
+            .set(that.data)
+            .then(function() {
+              // console.log("database updated");
+            })
+            .catch(error => {
+              alert(error);
+            });
+        }
+      });
+    },
+    // 新增檔案/資料夾
+    createFile: function(type) {
+      let that = this;
+      // 取得當下時間
+      let date = new Date();
+      let now = date.getTime();
+      if (type === "folder") {
+        that.data.files.push({
+          id: "folder-" + that.createID(),
+          path: that.path,
+          pathList: that.pathList.slice(),
+          name: "新資料夾",
+          type: "folder",
+          updateTime: now,
+          createTime: now
+        });
+      } else if (type === "file") {
+        that.data.files.push({
+          id: "file-" + that.createID(),
+          path: that.path,
+          pathList: that.pathList.slice(),
+          name: "新檔案",
+          type: "file",
+          tasks: {},
+          createTime: now,
+          updateTime: now
+        });
+      }
+      this.updateDatabase();
+    },
+    // 複製檔案/資料夾
+    copyFile: function(file) {
+      let that = this;
+      // 取得當下時間
+      let date = new Date();
+      let now = date.getTime();
+      if (file.type === "folder") {
+        that.data.files.push({
+          id: "folder-" + that.createID(),
+          path: file.path,
+          pathList: file.pathList.slice(),
+          name: file.name + " - 複製",
+          type: "folder",
+          createTime: now,
+          updateTime: now
+        });
+      } else if (file.type === "file") {
+        that.data.files.push({
+          id: "folder-" + that.createID(),
+          path: file.path,
+          pathList: file.pathList.slice(),
+          name: file.name + " - 複製",
+          tasks: {},
+          type: "file",
+          createTime: now,
+          updateTime: now
+        });
+      }
+      this.updateDatabase();
+    },
+    // 刪除檔案/資料夾
+    deleteFile: function(file) {
+      const filesLength = this.data.files.length;
+      for (let i = 0; i < filesLength; i++) {
+        if (this.data.files[i].id === file.id) {
+          this.data.files.splice(i, 1);
+          break;
+        }
+      }
+      this.updateDatabase();
+    },
+    // 重新命名檔案/資料夾
+    renameFile: function(file) {
+      let newName = prompt("請輸入新名稱");
+      if (newName != "") {
+        let date = new Date();
+        let now = date.getTime();
+        const filesLength = this.data.files.length;
+        for (let i = 0; i < filesLength; i++) {
+          if (this.data.files[i].id === file.id) {
+            this.data.files[i].name = newName;
+            this.data.files[i].updateTime = now;
+            break;
+          }
+        }
+        this.updateDatabase();
       }
     },
+    // 更新 file/ folder list
     updateList: function() {
       const filesLength = this.data.files.length;
       this.fileList = [];
@@ -145,6 +261,7 @@ export default {
         }
       }
     },
+    // 開啟資料夾
     openFolder: function(item) {
       if (this.path != item.path + item.name + "/") {
         this.path = item.path + item.name + "/";
@@ -157,6 +274,17 @@ export default {
         this.updateList();
       }
     },
+    // 開啟檔案
+    openFile: function(item) {
+      this.$router.push({
+        name: `gantt`,
+        params: {
+          file: item,
+          data: this.data,
+        }
+      });
+    },
+    // 點路徑去不同的資料夾
     changePath: function(index) {
       let newPath = "";
       for (let i = 0; i <= index; i++) {
@@ -173,25 +301,17 @@ export default {
         }
       }
     },
-    openFile: function(item) {
-      this.$router.push({
-        name: `gantt`,
-        params: {
-          file: item,
-          data: this.data
-        }
-      });
-    }
   },
   beforeMount() {
     const that = this;
-    const database = db.database();
     db.auth().onAuthStateChanged(function(user) {
       if (user) {
-        database.ref(user.uid).on("value", function(snapshot) {
-          that.data = snapshot.val();
-          that.updateList();
-        });
+        db.database()
+          .ref(user.uid)
+          .on("value", function(snapshot) {
+            that.data = snapshot.val();
+            that.updateList();
+          });
       }
     });
   },
@@ -276,6 +396,11 @@ export default {
 .main {
   padding: 3px 40px 40px 40px;
   background: #eeeeee;
+  width: 100%;
+}
+
+.main.menu-on{
+  width: calc(100vw -240px);
 }
 
 .main .title {
@@ -319,7 +444,7 @@ export default {
 
 .main .list .list-item .left {
   display: flex;
-  justify-content: center;
+  justify-content: space-around;
   align-items: center;
 }
 

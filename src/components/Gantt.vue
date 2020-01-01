@@ -18,7 +18,7 @@
             <!-- <li class="export-item" @click="exportFile('meadow')">Export :: Meadow</li>
             <li class="export-item" @click="exportFile('broadway')">Export :: Broadway</li>
             <li class="export-item" @click="exportFile('skyblue')">Export :: Skyblue</li>
-            <li class="export-item" @click="exportFile('material')">Export :: Material</li> -->
+            <li class="export-item" @click="exportFile('material')">Export :: Material</li>-->
           </ul>
         </button>
         <button class="button" @click="saveFile()">
@@ -93,18 +93,18 @@ export default {
     //   gantt.config.task_height = 20;
     //   gantt.config.date_grid = "%Y/%m/%d";
     // gantt.attachEvent("onTemplatesReady", function() {
-      //依照年月日顯示欄位
-      // gantt.templates.date_scale = function (date) {
-      //     let y = gantt.date.date_to_str("%Y");
-      //     y = y(date);
-      //     let d = gantt.date.date_to_str("%n/%j");
-      //     let md = d(date);
-      //     let cy = '<div style="opacity:0.6; font-size:0.9em; height:15px; line-height:15px;">' + y + '</div>';
-      //     let cd = '<div style="font-size:1.1em; height:15px; line-height:15px;">' + md + '</div>';
-      //     return '<div style="padding:10px 0px;">' + cy + cd + '</div>';
-      // };
+    //依照年月日顯示欄位
+    // gantt.templates.date_scale = function (date) {
+    //     let y = gantt.date.date_to_str("%Y");
+    //     y = y(date);
+    //     let d = gantt.date.date_to_str("%n/%j");
+    //     let md = d(date);
+    //     let cy = '<div style="opacity:0.6; font-size:0.9em; height:15px; line-height:15px;">' + y + '</div>';
+    //     let cd = '<div style="font-size:1.1em; height:15px; line-height:15px;">' + md + '</div>';
+    //     return '<div style="padding:10px 0px;">' + cy + cd + '</div>';
+    // };
 
-      //針對週末標注為灰色
+    //針對週末標注為灰色
     //   gantt.templates.scale_cell_class = function(date) {
     //     if (date.getDay() === 0 || date.getDay() === 6) {
     //       return "dhtmlxgantt_weekend";
@@ -132,11 +132,7 @@ export default {
                 var dateToStr = gantt.date.date_to_str("%M %d日");
                 var endDate = gantt.date.add(date, -6, "day");
                 var weekNum = gantt.date.date_to_str("%W")(date);
-                return (
-                  dateToStr(date) +
-                  " - " +
-                  dateToStr(endDate)
-                );
+                return dateToStr(date) + " - " + dateToStr(endDate);
               }
             },
             { unit: "day", step: 1, format: "%j %D" }
@@ -190,21 +186,30 @@ export default {
     // 初始化
     gantt.init(this.$refs.gantt, new Date(2019, 9, 1), new Date(2020, 2, 1));
     // 讀取資料
-    gantt.parse(this.file.tasks);
-    let recaptchaScript = document.createElement('script')
-    recaptchaScript.setAttribute('src', 'http://export.dhtmlx.com/gantt/api.js')
-    document.head.appendChild(recaptchaScript)
+    if (this.file.tasks) {
+      gantt.parse(this.file.tasks);
+    }
+    let recaptchaScript = document.createElement("script");
+    recaptchaScript.setAttribute(
+      "src",
+      "http://export.dhtmlx.com/gantt/api.js"
+    );
+    document.head.appendChild(recaptchaScript);
   },
   methods: {
     saveFile: function() {
       let that = this;
       this.file.tasks = gantt.serialize();
+      // 確認登入狀態
       db.auth().onAuthStateChanged(function(user) {
         if (user) {
-          // 找出createTime一樣的檔案 蓋掉 然後整筆丟回去
+          let date = new Date();
+          let now = date.getTime();
+          // 找出 id 一樣的檔案 蓋掉 然後整筆丟回去
           for (let i = 0; i < that.data.files.length; i++) {
             if (that.data.files[i].id === that.file.id) {
               that.data.files[i] = JSON.parse(JSON.stringify(that.file));
+              that.data.files[i].updateTime = now;
               break;
             }
           }
@@ -212,10 +217,10 @@ export default {
             .ref(user.uid)
             .set(that.data)
             .then(function() {
-              alert("資料已儲存。");
+              // console.log("database updated");
             })
             .catch(error => {
-              alert(error);
+              console.log(error);
             });
         }
       });
@@ -228,10 +233,30 @@ export default {
         let toSave = confirm("您有未儲存的內容，是否要儲存？");
         if (toSave) {
           this.saveFile();
-          that.$router.push({ path: "/" });
+          that.$router.push({
+            name: 'file',
+            params: {
+              path: that.file.path,
+              pathList: that.file.pathList
+            }
+          });
+        } else {
+          this.$router.push({
+            name: 'file',
+            params: {
+              path: that.file.path,
+              pathList: that.file.pathList
+            }
+          });
         }
       } else {
-        this.$router.push({ path: "/" });
+        this.$router.push({
+          name: 'file',
+          params: {
+            path: that.file.path,
+            pathList: that.file.pathList
+          }
+        });
       }
     },
     exportFile: function(format) {

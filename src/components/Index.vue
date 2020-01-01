@@ -44,7 +44,7 @@ export default {
         .signOut()
         .then(function() {
           that.userInformation = null;
-          that.$router.push({ path: "/signin" });
+          that.$router.push({ name: "signin" });
         })
         .catch(function(error) {
           alert(error);
