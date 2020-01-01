@@ -19,8 +19,8 @@
     <div class="wrap">
       <aside class="menu" v-if="menuOn">
         <ul class="menu-list">
-          <li class="menu-item" @click="createFile('file')">新增檔案</li>
           <li class="menu-item" @click="createFile('folder')">新增資料夾</li>
+          <li class="menu-item" @click="createFile('file')">新增檔案</li>
         </ul>
       </aside>
       <main class="main">

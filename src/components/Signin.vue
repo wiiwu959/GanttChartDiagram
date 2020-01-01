@@ -104,10 +104,10 @@ export default {
 }
 .main {
   display: flex;
+  height: calc(100vh - 160px);
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  padding: 84px 0;
+  padding: 20px 0;
 }
 .menu {
   width: 100%;
@@ -142,7 +142,7 @@ export default {
 }
 .form {
   width: 960px;
-  height: 420px;
+  padding: 40px;
   border: 2px solid #00bbff;
   display: flex;
   flex-direction: column;

@@ -11,6 +11,10 @@
         </li>
       </ul>
       <form class="form">
+        <p class="greet">
+          歡迎來到 Gantt Chart Editor ^^<br/>
+          註冊帳號，立即開始使用吧！
+        </p>
         <div class="field">
           <label for="nickname">暱稱：</label>
           <input
@@ -152,7 +156,7 @@ export default {
             .then(() => {
               // 註冊成功後顯示訊息 已自動登入
               alert("註冊成功！");
-              that.$router.push({name: 'file'});
+              that.$router.push({ name: "file" });
             });
         })
         .catch(error => {
@@ -191,11 +195,11 @@ export default {
   background-color: #00bbff;
 }
 .main {
+  height: calc(100vh - 160px);
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  padding: 84px 0;
+  padding: 20px 0;
 }
 .menu {
   width: 100%;
@@ -229,13 +233,19 @@ export default {
   background-color: #00bbff;
 }
 .form {
+  padding: 40px;
   width: 960px;
-  height: 420px;
   border: 2px solid #00bbff;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+}
+.form .greet{
+  text-align: center;
+  line-height: 1.5em;
+  font-size: 24px;
+  padding: 20px;
 }
 .field {
   margin: 10px;
